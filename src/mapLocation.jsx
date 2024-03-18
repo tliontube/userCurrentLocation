@@ -12,10 +12,13 @@ const GoogleMapComponent = () => {
 
   useEffect(() => {
     const initMap = () => {
-      const mapInstance = new window.google.maps.Map(document.getElementById("map"), {
-        center: { lat: 37.7749, lng: -122.4194 },
-        zoom: 12,
-      });
+      const mapInstance = new window.google.maps.Map(
+        document.getElementById("map"),
+        {
+          center: { lat: 37.7749, lng: -122.4194 },
+          zoom: 12,
+        }
+      );
       setMap(mapInstance);
       setDirectionsService(new window.google.maps.DirectionsService());
       const renderer = new window.google.maps.DirectionsRenderer();
@@ -74,7 +77,10 @@ const GoogleMapComponent = () => {
             // Calculate distance between consecutive positions
             if (path.length > 0) {
               const previousLocation = path[path.length - 1];
-              const distance = calculateDistance(previousLocation, userLocation);
+              const distance = calculateDistance(
+                previousLocation,
+                userLocation
+              );
               setTotalDistance((prevDistance) => prevDistance + distance);
             }
 
@@ -109,9 +115,9 @@ const GoogleMapComponent = () => {
   }, [path, map, polyline]);
 
   const calculateDistance = (from, to) => {
-    // Haversine formula to calculate distance between two coordinates
-    const R = 6371e3; // Earth's radius in meters
-    const φ1 = (from.lat * Math.PI) / 180; // φ, λ in radians
+    const earthRadius = 6371; // Earth's radius in kilometers
+
+    const φ1 = (from.lat * Math.PI) / 180;
     const φ2 = (to.lat * Math.PI) / 180;
     const Δφ = ((to.lat - from.lat) * Math.PI) / 180;
     const Δλ = ((to.lng - from.lng) * Math.PI) / 180;
@@ -119,9 +125,12 @@ const GoogleMapComponent = () => {
     const a =
       Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
       Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return R * c; // Distance in meters
+    const distance = earthRadius * c;
+
+    return distance; // Distance in kilometers
   };
 
   const calculateAndDisplayRoute = () => {
@@ -177,7 +186,9 @@ const GoogleMapComponent = () => {
       <div id="map" style={{ height: "400px", width: "100%" }}></div>
       <div id="distance"></div>
       <div id="duration"></div>
-      <div id="total-distance">Total distance traveled: {totalDistance.toFixed(2)} meters</div>
+      <div id="total-distance">
+        Total distance traveled: {totalDistance.toFixed(2)} meters
+      </div>
     </div>
   );
 };
