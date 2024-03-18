@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { getDistance } from "geolib";
 
 const GoogleMapComponent = () => {
   const [map, setMap] = useState(null);
@@ -9,17 +8,14 @@ const GoogleMapComponent = () => {
   const [path, setPath] = useState([]);
   const [polyline, setPolyline] = useState(null);
   const [currentLocation, setCurrentLocation] = useState({});
-  const [totalDistance, setTotalDistance] = useState(0); // Added state for total distance
+  const [totalDistance, setTotalDistance] = useState(0);
 
   useEffect(() => {
     const initMap = () => {
-      const mapInstance = new window.google.maps.Map(
-        document.getElementById("map"),
-        {
-          center: { lat: 37.7749, lng: -122.4194 },
-          zoom: 12,
-        }
-      );
+      const mapInstance = new window.google.maps.Map(document.getElementById("map"), {
+        center: { lat: 37.7749, lng: -122.4194 },
+        zoom: 12,
+      });
       setMap(mapInstance);
       setDirectionsService(new window.google.maps.DirectionsService());
       const renderer = new window.google.maps.DirectionsRenderer();
@@ -74,18 +70,6 @@ const GoogleMapComponent = () => {
 
             map.setCenter(userLocation);
             // map.setZoom(15);
-
-            // Calculate distance between consecutive positions
-            // if (path.length > 0) {
-            //   const previousLocation = path[path.length - 1];
-            //   const distance = calculateDistance(
-            //     previousLocation,
-            //     userLocation
-            //   );
-
-            //   setTotalDistance((prevDistance) => prevDistance + distance);
-            // }
-
             setPath((prevPath) => [...prevPath, userLocation]);
           },
           (error) => {
@@ -130,11 +114,6 @@ const GoogleMapComponent = () => {
     }
   }, [path, map, polyline]);
 
-
-  // const calculateDistance = (from, to) => {
-  //   return getDistance(from, to);
-  // };
-
   const calculateAndDisplayRoute = () => {
     const origin = currentLocation;
     const destination = document.getElementById("destination").value;
@@ -157,25 +136,15 @@ const GoogleMapComponent = () => {
     );
   };
 
-  // const computeTotalDistance = (result) => {
-  //   let totalDistance = 0;
-  //   const myRoute = result.routes[0];
-  //   for (let i = 0; i < myRoute.legs.length; i++) {
-  //     totalDistance += myRoute.legs[i].distance.value;
-  //   }
-  //   const totalDistanceInKm = totalDistance / 1000;
-  //   document.getElementById("distance").innerHTML =
-  //     "Total distance: " + totalDistanceInKm + " km";
-  // };
   const computeTotalDistance = (result) => {
     let totalDistance = 0;
     const myRoute = result.routes[0];
     for (let i = 0; i < myRoute.legs.length; i++) {
       totalDistance += myRoute.legs[i].distance.value;
     }
-    const totalDistanceInKm = totalDistance / 1000; // Convert to kilometers
+    const totalDistanceInKm = totalDistance / 1000;
     document.getElementById("distance").innerHTML =
-      "Total distance: " + totalDistanceInKm.toFixed(2) + " km"; // Display with 2 decimal places
+      "Total distance: " + totalDistanceInKm + " km";
   };
 
   const computeTotalDuration = (result) => {
@@ -186,8 +155,8 @@ const GoogleMapComponent = () => {
     }
     const hours = Math.floor(totalDuration / 3600);
     const minutes = Math.floor((totalDuration % 3600) / 60);
-    document.getElementById("duration").innerHTML;
-    "Estimated time: " + hours + " hours " + minutes + " minutes";
+    document.getElementById("duration").innerHTML =
+      "Estimated time: " + hours + " hours " + minutes + " minutes";
   };
 
   return (
@@ -198,9 +167,7 @@ const GoogleMapComponent = () => {
       <div id="map" style={{ height: "400px", width: "100%" }}></div>
       <div id="distance"></div>
       <div id="duration"></div>
-      <div id="total-distance">
-        <p>Total Distance: {totalDistance.toFixed(2)} km</p>
-      </div>
+      <p>Total Distance: {totalDistance.toFixed(2)} km</p>
     </div>
   );
 };
