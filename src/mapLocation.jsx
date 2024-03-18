@@ -21,6 +21,14 @@ const MapContainer = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      calculateDistance();
+    }, 1000); // Update every second
+
+    return () => clearInterval(interval);
+  }, [origin, map]);
+
   const onMapClick = (event) => {
     const newUserLocation = {
       lat: event.latLng.lat(),
@@ -48,10 +56,6 @@ const MapContainer = () => {
       );
     }
   };
-
-  useEffect(() => {
-    calculateDistance();
-  }, [origin, map]);
 
   return (
     <div style={{ height: '500px', width: '600px' }}>
