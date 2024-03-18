@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-google-maps/api": "^2.19.3",
     "geolib": "^3.3.4",
     "google-map-react": "^2.2.1",
     "react": "^18.2.0",
