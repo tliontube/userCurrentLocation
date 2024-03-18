@@ -53,11 +53,13 @@ const GoogleMapComponent = () => {
               lng: position.coords.longitude,
             };
             setCurrentLocation(userLocation);
-
+  
+            // Remove previous marker if exists
             if (userMarker) {
               userMarker.setMap(null);
             }
-
+  
+            // Create a new marker with updated position
             const newMarker = new window.google.maps.Marker({
               position: userLocation,
               map: map,
@@ -65,9 +67,10 @@ const GoogleMapComponent = () => {
                 url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
               },
             });
-
+  
+            // Set the new marker as userMarker
             setUserMarker(newMarker);
-
+  
             map.setCenter(userLocation);
             // map.setZoom(15);
             setPath((prevPath) => [...prevPath, userLocation]);
@@ -82,6 +85,7 @@ const GoogleMapComponent = () => {
     };
     getUserLocation();
   }, [map, userMarker]);
+  
 
   useEffect(() => {
     if (path.length > 1 && map) {
