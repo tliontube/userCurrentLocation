@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-
+ 
 const GoogleMapComponent = () => {
   const [map, setMap] = useState(null);
   const [directionsService, setDirectionsService] = useState(null);
@@ -8,7 +8,9 @@ const GoogleMapComponent = () => {
   const [path, setPath] = useState([]);
   const [polyline, setPolyline] = useState(null);
   const [currentLocation, setCurrentLocation] = useState({});
-
+  const [totalDistance, setTotalDistance] = useState(0);
+  const [originSet, setOriginSet] = useState(false);
+ 
   useEffect(() => {
     const initMap = () => {
       const mapInstance = new window.google.maps.Map(document.getElementById("map"), {
@@ -21,7 +23,7 @@ const GoogleMapComponent = () => {
       renderer.setMap(mapInstance);
       setDirectionsRenderer(renderer);
     };
-
+ 
     if (!window.google) {
       const script = document.createElement("script");
       script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8&callback=initMap`;
@@ -33,15 +35,7 @@ const GoogleMapComponent = () => {
       initMap();
     }
   }, []);
-
-  useEffect(() => {
-    return () => {
-      if (userMarker) {
-        userMarker.setMap(null);
-      }
-    };
-  }, [userMarker]);
-
+ 
   useEffect(() => {
     const getUserLocation = () => {
       if (navigator.geolocation) {
@@ -52,22 +46,20 @@ const GoogleMapComponent = () => {
               lng: position.coords.longitude,
             };
             setCurrentLocation(userLocation);
-
-            if (userMarker) {
-              userMarker.setMap(null);
-            }
-
+             
             const newMarker = new window.google.maps.Marker({
               position: userLocation,
               map: map,
               icon: {
-                url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+                url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
               },
             });
-
             setUserMarker(newMarker);
-
+            setOriginSet(true);
+           
+ 
             map.setCenter(userLocation);
+ 
             setPath((prevPath) => [...prevPath, userLocation]);
           },
           (error) => {
@@ -78,30 +70,51 @@ const GoogleMapComponent = () => {
         console.error("Geolocation is not supported.");
       }
     };
+ 
     getUserLocation();
+ 
+    return () => {
+      // Clean up resources
+      if (userMarker) {
+        userMarker.setMap(null);
+      }
+    };
   }, [map, userMarker]);
-
+ 
   useEffect(() => {
     if (path.length > 1 && map) {
       if (polyline) {
-        polyline.setMap(null);
+        polyline.setPath(path);
+      } else {
+        const newPath = new window.google.maps.Polyline({
+          path: path,
+          geodesic: true,
+          strokeColor: "#FFA500",
+          strokeOpacity: 1.0,
+          strokeWeight: 2,
+        });
+        newPath.setMap(map);
+        setPolyline(newPath);
       }
-      const newPath = new window.google.maps.Polyline({
-        path: path,
-        geodesic: true,
-        strokeColor: "#FF0000",
-        strokeOpacity: 1.0,
-        strokeWeight: 2,
-      });
-      newPath.setMap(map);
-      setPolyline(newPath);
+ 
+      let distance = 0;
+      for (let i = 0; i < path.length - 1; i++) {
+        const p1 = path[i];
+        const p2 = path[i + 1];
+        distance += window.google.maps.geometry.spherical.computeDistanceBetween(
+          new window.google.maps.LatLng(p1.lat, p1.lng),
+          new window.google.maps.LatLng(p2.lat, p2.lng)
+        );
+      }
+      distance = distance / 1000;
+      setTotalDistance(distance);
     }
   }, [path, map, polyline]);
-
+ 
   const calculateAndDisplayRoute = () => {
     const origin = currentLocation;
     const destination = document.getElementById("destination").value;
-
+ 
     directionsService.route(
       {
         origin: origin,
@@ -119,7 +132,7 @@ const GoogleMapComponent = () => {
       }
     );
   };
-
+ 
   const computeTotalDistance = (result) => {
     let totalDistance = 0;
     const myRoute = result.routes[0];
@@ -130,7 +143,7 @@ const GoogleMapComponent = () => {
     document.getElementById("distance").innerHTML =
       "Total distance: " + totalDistanceInKm + " km";
   };
-
+ 
   const computeTotalDuration = (result) => {
     let totalDuration = 0;
     const myRoute = result.routes[0];
@@ -142,7 +155,7 @@ const GoogleMapComponent = () => {
     document.getElementById("duration").innerHTML =
       "Estimated time: " + hours + " hours " + minutes + " minutes";
   };
-
+ 
   return (
     <div>
       <h1>Google Maps Directions, Distance, Time, and User Location</h1>
@@ -151,8 +164,10 @@ const GoogleMapComponent = () => {
       <div id="map" style={{ height: "400px", width: "100%" }}></div>
       <div id="distance"></div>
       <div id="duration"></div>
+      <p>Total Distance: {totalDistance.toFixed(2)} km</p>
     </div>
   );
 };
-
+ 
 export default GoogleMapComponent;
+ 
