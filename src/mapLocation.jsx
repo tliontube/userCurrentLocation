@@ -142,16 +142,27 @@ const GoogleMapComponent = () => {
     );
   };
 
+  // const computeTotalDistance = (result) => {
+  //   let totalDistance = 0;
+  //   const myRoute = result.routes[0];
+  //   for (let i = 0; i < myRoute.legs.length; i++) {
+  //     totalDistance += myRoute.legs[i].distance.value;
+  //   }
+  //   const totalDistanceInKm = totalDistance / 1000;
+  //   document.getElementById("distance").innerHTML =
+  //     "Total distance: " + totalDistanceInKm + " km";
+  // };
   const computeTotalDistance = (result) => {
     let totalDistance = 0;
     const myRoute = result.routes[0];
     for (let i = 0; i < myRoute.legs.length; i++) {
       totalDistance += myRoute.legs[i].distance.value;
     }
-    const totalDistanceInKm = totalDistance / 1000;
+    const totalDistanceInKm = totalDistance / 1000; // Convert to kilometers
     document.getElementById("distance").innerHTML =
-      "Total distance: " + totalDistanceInKm + " km";
+      "Total distance: " + totalDistanceInKm.toFixed(2) + " km"; // Display with 2 decimal places
   };
+  
 
   const computeTotalDuration = (result) => {
     let totalDuration = 0;
@@ -161,7 +172,7 @@ const GoogleMapComponent = () => {
     }
     const hours = Math.floor(totalDuration / 3600);
     const minutes = Math.floor((totalDuration % 3600) / 60);
-    document.getElementById("duration").innerHTML =
+    document.getElementById("duration").innerHTML 
       "Estimated time: " + hours + " hours " + minutes + " minutes";
   };
 
