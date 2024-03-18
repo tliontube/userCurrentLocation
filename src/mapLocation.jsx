@@ -76,15 +76,15 @@ const GoogleMapComponent = () => {
             // map.setZoom(15);
 
             // Calculate distance between consecutive positions
-            if (path.length > 0) {
-              const previousLocation = path[path.length - 1];
-              const distance = calculateDistance(
-                previousLocation,
-                userLocation
-              );
+            // if (path.length > 0) {
+            //   const previousLocation = path[path.length - 1];
+            //   const distance = calculateDistance(
+            //     previousLocation,
+            //     userLocation
+            //   );
 
-              setTotalDistance((prevDistance) => prevDistance + distance);
-            }
+            //   setTotalDistance((prevDistance) => prevDistance + distance);
+            // }
 
             setPath((prevPath) => [...prevPath, userLocation]);
           },
@@ -113,12 +113,27 @@ const GoogleMapComponent = () => {
       });
       newPath.setMap(map);
       setPolyline(newPath);
+
+      // Calculate total distance
+      let distance = 0;
+      for (let i = 0; i < path.length - 1; i++) {
+        const p1 = path[i];
+        const p2 = path[i + 1];
+        distance += window.google.maps.geometry.spherical.computeDistanceBetween(
+          new window.google.maps.LatLng(p1.lat, p1.lng),
+          new window.google.maps.LatLng(p2.lat, p2.lng)
+        );
+      }
+      // Convert distance to kilometers
+      distance = distance / 1000;
+      setTotalDistance(distance);
     }
   }, [path, map, polyline]);
 
-  const calculateDistance = (from, to) => {
-    return getDistance(from, to);
-  };
+
+  // const calculateDistance = (from, to) => {
+  //   return getDistance(from, to);
+  // };
 
   const calculateAndDisplayRoute = () => {
     const origin = currentLocation;
@@ -162,7 +177,6 @@ const GoogleMapComponent = () => {
     document.getElementById("distance").innerHTML =
       "Total distance: " + totalDistanceInKm.toFixed(2) + " km"; // Display with 2 decimal places
   };
-  
 
   const computeTotalDuration = (result) => {
     let totalDuration = 0;
@@ -172,8 +186,8 @@ const GoogleMapComponent = () => {
     }
     const hours = Math.floor(totalDuration / 3600);
     const minutes = Math.floor((totalDuration % 3600) / 60);
-    document.getElementById("duration").innerHTML 
-      "Estimated time: " + hours + " hours " + minutes + " minutes";
+    document.getElementById("duration").innerHTML;
+    "Estimated time: " + hours + " hours " + minutes + " minutes";
   };
 
   return (
@@ -185,7 +199,7 @@ const GoogleMapComponent = () => {
       <div id="distance"></div>
       <div id="duration"></div>
       <div id="total-distance">
-        Total distance traveled: {totalDistance.toFixed(2)} Kilometer
+        <p>Total Distance: {totalDistance.toFixed(2)} km</p>
       </div>
     </div>
   );
