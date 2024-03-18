@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Marker, Polyline } from '@react-google-maps/api';
 
 const MapContainer = () => {
   const [map, setMap] = useState(null);
   const [origin, setOrigin] = useState(null);
   const [distance, setDistance] = useState(0);
   const [previousPosition, setPreviousPosition] = useState(null);
+  const [path, setPath] = useState([]);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -19,10 +20,12 @@ const MapContainer = () => {
           setOrigin(userLocation);
           setPreviousPosition(userLocation);
           setMap(userLocation);
+          setPath([userLocation]);
         } else {
           const distanceMoved = calculateDistance(previousPosition, userLocation);
           setDistance(distance + distanceMoved);
           setPreviousPosition(userLocation);
+          setPath([...path, userLocation]);
         }
       });
     } else {
@@ -72,9 +75,17 @@ const MapContainer = () => {
           onClick={onMapClick}
         >
           {map && (
-            <Marker
-              position={map}
-            />
+            <>
+              <Marker position={map} />
+              <Polyline
+                path={path}
+                options={{
+                  strokeColor: '#FF0000',
+                  strokeOpacity: 1.0,
+                  strokeWeight: 2
+                }}
+              />
+            </>
           )}
         </GoogleMap>
       </LoadScript>
