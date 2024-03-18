@@ -50,63 +50,44 @@ const GoogleMapComponent = () => {
       }
     };
   }, [userMarker]); // Run this effect whenever userMarker changes
-
+  
   const getUserLocation = () => {
     if (navigator.geolocation) {
-      let isFirstUpdate = true; // Flag to determine if it's the first update
+      navigator.geolocation.watchPosition(
+        (position) => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
   
-      // Function to get the current position
-      const getCurrentPosition = () => {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const userLocation = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            };
-  
-            // Remove the previous userMarker, if exists
-            if (userMarker) {
-              userMarker.setMap(null); // Remove marker from the map
-            }
-  
-            // Add new userMarker at the current location
-            const newMarker = new window.google.maps.Marker({
-              position: userLocation,
-              map: map,
-              icon: {
-                url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
-              },
-            });
-  
-            setUserMarker(newMarker);
-  
-            // If it's the first update, set the center and zoom of the map
-            if (isFirstUpdate) {
-              map.setCenter(userLocation);
-              map.setZoom(15);
-              isFirstUpdate = false;
-            }
-          },
-          (error) => {
-            console.error("Error getting location:", error);
+          // Remove the previous userMarker, if exists
+          if (userMarker) {
+            userMarker.setMap(null); // Remove marker from the map
           }
-        );
-      };
   
-      // Call getCurrentPosition initially
-      getCurrentPosition();
+          // Add new userMarker at the current location
+          const newMarker = new window.google.maps.Marker({
+            position: userLocation,
+            map: map,
+            icon: {
+              url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+            },
+          });
   
-      // Set interval to call getCurrentPosition every second
-      const intervalId = setInterval(getCurrentPosition, 1000);
+          setUserMarker(newMarker);
   
-      // Clear the interval on component unmount to stop continuous updates
-      return () => clearInterval(intervalId);
+          map.setCenter(userLocation);
+          map.setZoom(15);
+          setPath((prevPath) => [...prevPath, userLocation]);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
     } else {
       console.error("Geolocation is not supported.");
     }
   };
-  
-  
 
   
   useEffect(() => {
