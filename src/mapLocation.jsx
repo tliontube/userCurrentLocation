@@ -8,6 +8,7 @@ const GoogleMapComponent = () => {
   const [path, setPath] = useState([]);
   const [polyline, setPolyline] = useState(null);
   const [currentLocation, setCurrentLocation] = useState({});
+  const [totalDistance, setTotalDistance] = useState(0); // Added state for total distance
 
   useEffect(() => {
     const initMap = () => {
@@ -24,7 +25,7 @@ const GoogleMapComponent = () => {
 
     if (!window.google) {
       const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8&callback=initMap`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap`;
       script.async = true;
       script.defer = true;
       document.head.appendChild(script);
@@ -69,6 +70,14 @@ const GoogleMapComponent = () => {
 
             map.setCenter(userLocation);
             // map.setZoom(15);
+
+            // Calculate distance between consecutive positions
+            if (path.length > 0) {
+              const previousLocation = path[path.length - 1];
+              const distance = calculateDistance(previousLocation, userLocation);
+              setTotalDistance((prevDistance) => prevDistance + distance);
+            }
+
             setPath((prevPath) => [...prevPath, userLocation]);
           },
           (error) => {
@@ -98,6 +107,22 @@ const GoogleMapComponent = () => {
       setPolyline(newPath);
     }
   }, [path, map, polyline]);
+
+  const calculateDistance = (from, to) => {
+    // Haversine formula to calculate distance between two coordinates
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = (from.lat * Math.PI) / 180; // φ, λ in radians
+    const φ2 = (to.lat * Math.PI) / 180;
+    const Δφ = ((to.lat - from.lat) * Math.PI) / 180;
+    const Δλ = ((to.lng - from.lng) * Math.PI) / 180;
+
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // Distance in meters
+  };
 
   const calculateAndDisplayRoute = () => {
     const origin = currentLocation;
@@ -152,6 +177,7 @@ const GoogleMapComponent = () => {
       <div id="map" style={{ height: "400px", width: "100%" }}></div>
       <div id="distance"></div>
       <div id="duration"></div>
+      <div id="total-distance">Total distance traveled: {totalDistance.toFixed(2)} meters</div>
     </div>
   );
 };
