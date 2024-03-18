@@ -68,7 +68,7 @@ const GoogleMapComponent = () => {
             setUserMarker(newMarker);
 
             map.setCenter(userLocation);
-            map.setZoom(15);
+            // map.setZoom(15);
             setPath((prevPath) => [...prevPath, userLocation]);
           },
           (error) => {
