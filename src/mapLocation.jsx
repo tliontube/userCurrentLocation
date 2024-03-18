@@ -43,34 +43,45 @@ const GoogleMapComponent = () => {
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
-        (position) => {
-          const userLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
+      const updateLocation = () => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const userLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
   
-          // Remove the previous userMarker, if exists
-          if (userMarker) {
-            userMarker.setMap(null); // Remove marker from the map
+            // Remove the previous userMarker, if exists
+            if (userMarker) {
+              userMarker.setMap(null); // Remove marker from the map
+            }
+  
+            // Add new userMarker at the current location
+            setUserMarker(new window.google.maps.Marker({
+              position: userLocation,
+              map: map,
+              icon: {
+                url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+              },
+            }));
+  
+            map.setCenter(userLocation);
+            map.setZoom(15);
+          },
+          (error) => {
+            console.error("Error getting location:", error);
           }
+        );
+      };
   
-          // Add new userMarker at the current location
-          setUserMarker(new window.google.maps.Marker({
-            position: userLocation,
-            map: map,
-            icon: {
-              url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
-            },
-          }));
+      // Call the updateLocation function initially
+      updateLocation();
   
-          map.setCenter(userLocation);
-          map.setZoom(15);
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-        }
-      );
+      // Update the location every second
+      const intervalId = setInterval(updateLocation, 1000);
+  
+      // Clear the interval on component unmount
+      return () => clearInterval(intervalId);
     } else {
       console.error("Geolocation is not supported.");
     }
