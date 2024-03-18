@@ -5,6 +5,7 @@ const GoogleMapComponent = () => {
   const [directionsService, setDirectionsService] = useState(null);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
   const [userMarker, setUserMarker] = useState(null);
+  const [path, setPath] = useState([]);
   const [polyline, setPolyline] = useState(null);
 
   useEffect(() => {
@@ -74,12 +75,10 @@ const GoogleMapComponent = () => {
           });
   
           setUserMarker(newMarker);
-
-          // Update the polyline
-          updatePolyline(userLocation);
   
           map.setCenter(userLocation);
           map.setZoom(15);
+          setPath((prevPath) => [...prevPath, userLocation]);
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -90,25 +89,25 @@ const GoogleMapComponent = () => {
     }
   };
 
-  const updatePolyline = (userLocation) => {
-    if (polyline) {
-      polyline.setMap(null); // Remove previous polyline
+  
+  useEffect(() => {
+    if (path.length > 1) {
+      if (polyline) {
+        polyline.setMap(null); // Remove existing polyline
+      }
+      const newPath = new window.google.maps.Polyline({
+        path: path,
+        geodesic: true,
+        strokeColor: "#FF0000",
+        strokeOpacity: 1.0,
+        strokeWeight: 2,
+      });
+      newPath.setMap(map);
+      setPolyline(newPath);
     }
+  }, [path, map, polyline]);
 
-    const path = (polyline && polyline.getPath()) || new window.google.maps.MVCArray();
-    path.push(new window.google.maps.LatLng(userLocation.lat, userLocation.lng));
-
-    const updatedPolyline = new window.google.maps.Polyline({
-      path: path,
-      geodesic: true,
-      strokeColor: '#FF0000',
-      strokeOpacity: 1.0,
-      strokeWeight: 2
-    });
-
-    updatedPolyline.setMap(map);
-    setPolyline(updatedPolyline);
-  };
+  
 
   const calculateAndDisplayRoute = () => {
     const origin = document.getElementById("origin").value;
