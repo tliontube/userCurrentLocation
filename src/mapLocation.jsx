@@ -11,7 +11,7 @@ const GoogleMapComponent = () => {
       const mapInstance = new window.google.maps.Map(document.getElementById("map"), {
         center: { lat: 37.7749, lng: -122.4194 },
         zoom: 12,
-        gestureHandling: "greedy"
+        gestureHandling: "auto"
       });
       setMap(mapInstance);
       setDirectionsService(new window.google.maps.DirectionsService());
