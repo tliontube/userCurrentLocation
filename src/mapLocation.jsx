@@ -5,13 +5,13 @@ const GoogleMapComponent = () => {
   const [directionsService, setDirectionsService] = useState(null);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
   const [userMarker, setUserMarker] = useState(null);
+  const [polyline, setPolyline] = useState(null);
 
   useEffect(() => {
     const initMap = () => {
       const mapInstance = new window.google.maps.Map(document.getElementById("map"), {
         center: { lat: 37.7749, lng: -122.4194 },
         zoom: 12,
-        gestureHandling: "cooperative"
       });
       setMap(mapInstance);
       setDirectionsService(new window.google.maps.DirectionsService());
@@ -74,6 +74,9 @@ const GoogleMapComponent = () => {
           });
   
           setUserMarker(newMarker);
+
+          // Update the polyline
+          updatePolyline(userLocation);
   
           map.setCenter(userLocation);
           map.setZoom(15);
@@ -86,7 +89,26 @@ const GoogleMapComponent = () => {
       console.error("Geolocation is not supported.");
     }
   };
-  
+
+  const updatePolyline = (userLocation) => {
+    if (polyline) {
+      polyline.setMap(null); // Remove previous polyline
+    }
+
+    const path = (polyline && polyline.getPath()) || new window.google.maps.MVCArray();
+    path.push(new window.google.maps.LatLng(userLocation.lat, userLocation.lng));
+
+    const updatedPolyline = new window.google.maps.Polyline({
+      path: path,
+      geodesic: true,
+      strokeColor: '#FF0000',
+      strokeOpacity: 1.0,
+      strokeWeight: 2
+    });
+
+    updatedPolyline.setMap(map);
+    setPolyline(updatedPolyline);
+  };
 
   const calculateAndDisplayRoute = () => {
     const origin = document.getElementById("origin").value;
