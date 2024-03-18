@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getDistance } from "geolib";
 
 const GoogleMapComponent = () => {
   const [map, setMap] = useState(null);
@@ -81,6 +82,7 @@ const GoogleMapComponent = () => {
                 previousLocation,
                 userLocation
               );
+
               setTotalDistance((prevDistance) => prevDistance + distance);
             }
 
@@ -115,22 +117,7 @@ const GoogleMapComponent = () => {
   }, [path, map, polyline]);
 
   const calculateDistance = (from, to) => {
-    const earthRadius = 6371; // Earth's radius in kilometers
-
-    const φ1 = (from.lat * Math.PI) / 180;
-    const φ2 = (to.lat * Math.PI) / 180;
-    const Δφ = ((to.lat - from.lat) * Math.PI) / 180;
-    const Δλ = ((to.lng - from.lng) * Math.PI) / 180;
-
-    const a =
-      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    const distance = earthRadius * c;
-
-    return distance; // Distance in kilometers
+    return getDistance(from, to);
   };
 
   const calculateAndDisplayRoute = () => {
@@ -187,7 +174,7 @@ const GoogleMapComponent = () => {
       <div id="distance"></div>
       <div id="duration"></div>
       <div id="total-distance">
-        Total distance traveled: {totalDistance.toFixed(2)} meters
+        Total distance traveled: {totalDistance.toFixed(2)} Kilometer
       </div>
     </div>
   );
