@@ -8,7 +8,6 @@ const GoogleMapComponent = () => {
   const [path, setPath] = useState([]);
   const [polyline, setPolyline] = useState(null);
   const [currentLocation, setCurrentLocation] = useState({});
-  const [totalDistance, setTotalDistance] = useState(0);
 
   useEffect(() => {
     const initMap = () => {
@@ -53,13 +52,11 @@ const GoogleMapComponent = () => {
               lng: position.coords.longitude,
             };
             setCurrentLocation(userLocation);
-  
-            // Remove previous marker unconditionally
+
             if (userMarker) {
               userMarker.setMap(null);
             }
-  
-            // Create a new marker at the current location
+
             const newMarker = new window.google.maps.Marker({
               position: userLocation,
               map: map,
@@ -67,13 +64,12 @@ const GoogleMapComponent = () => {
                 url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
               },
             });
-  
-            // Set the new marker as userMarker
+
             setUserMarker(newMarker);
-  
+
             map.setCenter(userLocation);
             // map.setZoom(15);
-            setPath([userLocation]); // Set the path to only contain the current location
+            setPath((prevPath) => [...prevPath, userLocation]);
           },
           (error) => {
             console.error("Error getting location:", error);
@@ -85,8 +81,6 @@ const GoogleMapComponent = () => {
     };
     getUserLocation();
   }, [map, userMarker]);
-  
-  
 
   useEffect(() => {
     if (path.length > 1 && map) {
@@ -102,20 +96,6 @@ const GoogleMapComponent = () => {
       });
       newPath.setMap(map);
       setPolyline(newPath);
-
-      // Calculate total distance
-      let distance = 0;
-      for (let i = 0; i < path.length - 1; i++) {
-        const p1 = path[i];
-        const p2 = path[i + 1];
-        distance += window.google.maps.geometry.spherical.computeDistanceBetween(
-          new window.google.maps.LatLng(p1.lat, p1.lng),
-          new window.google.maps.LatLng(p2.lat, p2.lng)
-        );
-      }
-      // Convert distance to kilometers
-      distance = distance / 1000;
-      setTotalDistance(distance);
     }
   }, [path, map, polyline]);
 
@@ -172,7 +152,6 @@ const GoogleMapComponent = () => {
       <div id="map" style={{ height: "400px", width: "100%" }}></div>
       <div id="distance"></div>
       <div id="duration"></div>
-      <p>Total Distance: {totalDistance.toFixed(2)} km</p>
     </div>
   );
 };
