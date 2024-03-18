@@ -4,7 +4,6 @@ const GoogleMapComponent = () => {
   const [map, setMap] = useState(null);
   const [directionsService, setDirectionsService] = useState(null);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
-  const [carMarker, setCarMarker] = useState(null);
   const [userMarker, setUserMarker] = useState(null);
 
   useEffect(() => {
@@ -49,17 +48,21 @@ const GoogleMapComponent = () => {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           };
-          if (!userMarker) {
-            setUserMarker(new window.google.maps.Marker({
-              position: userLocation,
-              map: map,
-              icon: {
-                url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
-              },
-            }));
-          } else {
-            userMarker.setPosition(userLocation);
+  
+          // Remove the previous userMarker, if exists
+          if (userMarker) {
+            userMarker.setMap(null); // Remove marker from the map
           }
+  
+          // Add new userMarker at the current location
+          setUserMarker(new window.google.maps.Marker({
+            position: userLocation,
+            map: map,
+            icon: {
+              url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+            },
+          }));
+  
           map.setCenter(userLocation);
           map.setZoom(15);
         },
@@ -71,6 +74,7 @@ const GoogleMapComponent = () => {
       console.error("Geolocation is not supported.");
     }
   };
+  
 
   const calculateAndDisplayRoute = () => {
     const origin = document.getElementById("origin").value;
@@ -87,7 +91,6 @@ const GoogleMapComponent = () => {
           directionsRenderer.setDirections(response);
           computeTotalDistance(response);
           computeTotalDuration(response);
-          trackCar(response);
         } else {
           window.alert("Directions request failed due to " + status);
         }
@@ -118,36 +121,9 @@ const GoogleMapComponent = () => {
       "Estimated time: " + hours + " hours " + minutes + " minutes";
   };
 
-  const trackCar = (result) => {
-    const myRoute = result.routes[0];
-    let stepIndex = 0;
-
-    setInterval(() => {
-      if (stepIndex >= myRoute.legs[0].steps.length) return;
-      const step = myRoute.legs[0].steps[stepIndex];
-      const nextPosition = step.end_location;
-      moveCar(nextPosition);
-      stepIndex++;
-    }, 2000);
-  };
-
-  const moveCar = (position) => {
-    if (!carMarker) {
-      setCarMarker(new window.google.maps.Marker({
-        position: position,
-        map: map,
-        icon: {
-          url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-        },
-      }));
-    } else {
-      carMarker.setPosition(position);
-    }
-  };
-
   return (
     <div>
-      <h1>Google Maps Directions, Distance, Time, and Car Tracking with User Location</h1>
+      <h1>Google Maps Directions, Distance, Time, and User Location</h1>
       <button onClick={getUserLocation}>Get My Location</button>
       <input type="text" id="origin" placeholder="Origin" />
       <input type="text" id="destination" placeholder="Destination" />
