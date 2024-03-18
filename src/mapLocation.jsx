@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef } from "react";
+import React, { useEffect, useState } from "react";
  
 const GoogleMapComponent = () => {
   const [map, setMap] = useState(null);
@@ -10,7 +10,6 @@ const GoogleMapComponent = () => {
   const [currentLocation, setCurrentLocation] = useState({});
   const [totalDistance, setTotalDistance] = useState(0);
   const [originSet, setOriginSet] = useState(false);
-  const markerRef = useRef(null);
  
   useEffect(() => {
     const initMap = () => {
@@ -55,8 +54,8 @@ const GoogleMapComponent = () => {
                 url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
               },
             });
-            setUserMarker(newMarker); // Store reference in useRef hook
-            markerRef.current = newMarker; // Assign to useRef  
+            setUserMarker(newMarker);
+            setOriginSet(true);
            
  
             map.setCenter(userLocation);
