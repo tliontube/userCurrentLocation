@@ -4,7 +4,8 @@ import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 const MapContainer = () => {
   const [map, setMap] = useState(null);
   const [origin, setOrigin] = useState(null);
-  const [distance, setDistance] = useState(null);
+  const [distance, setDistance] = useState(0);
+  const [previousPosition, setPreviousPosition] = useState(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -13,21 +14,21 @@ const MapContainer = () => {
           lat: position.coords.latitude,
           lng: position.coords.longitude
         };
-        setOrigin(userLocation);
-        setMap(userLocation);
+
+        if (!origin) {
+          setOrigin(userLocation);
+          setPreviousPosition(userLocation);
+          setMap(userLocation);
+        } else {
+          const distanceMoved = calculateDistance(previousPosition, userLocation);
+          setDistance(distance + distanceMoved);
+          setPreviousPosition(userLocation);
+        }
       });
     } else {
       alert('Geolocation is not supported by this browser.');
     }
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      calculateDistance();
-    }, 1000); // Update every second
-
-    return () => clearInterval(interval);
-  }, [origin, map]);
+  }, [origin, distance]);
 
   const onMapClick = (event) => {
     const newUserLocation = {
@@ -37,24 +38,23 @@ const MapContainer = () => {
     setMap(newUserLocation);
   };
 
-  const calculateDistance = () => {
-    if (origin && map) {
-      const service = new window.google.maps.DistanceMatrixService();
-      service.getDistanceMatrix(
-        {
-          origins: [origin],
-          destinations: [map],
-          travelMode: 'DRIVING'
-        },
-        (response, status) => {
-          if (status === 'OK') {
-            setDistance(response.rows[0].elements[0].distance.text);
-          } else {
-            console.error('Error:', status);
-          }
-        }
-      );
-    }
+  const calculateDistance = (pos1, pos2) => {
+    if (!pos1 || !pos2) return 0;
+
+    const rad = (x) => {
+      return (x * Math.PI) / 180;
+    };
+
+    const R = 6378137; // Earth’s mean radius in meters
+    const dLat = rad(pos2.lat - pos1.lat);
+    const dLong = rad(pos2.lng - pos1.lng);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(rad(pos1.lat)) * Math.cos(rad(pos2.lat)) * Math.sin(dLong / 2) * Math.sin(dLong / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+
+    return distance; // returns the distance in meters
   };
 
   return (
@@ -78,9 +78,7 @@ const MapContainer = () => {
           )}
         </GoogleMap>
       </LoadScript>
-      {distance && (
-        <p>Distance from origin: {distance}</p>
-      )}
+      <p>Distance traveled: {distance.toFixed(2)} meters</p>
     </div>
   );
 };
