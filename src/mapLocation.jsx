@@ -54,7 +54,7 @@ const MapContainer = () => {
   }, [origin, map]);
 
   return (
-    <div style={{ height: '100vh', width: '100%' }}>
+    <div style={{ height: '500px', width: '600px' }}>
       <LoadScript
         googleMapsApiKey="AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8"
       >
@@ -70,7 +70,6 @@ const MapContainer = () => {
           {map && (
             <Marker
               position={map}
-              label="Current Location"
             />
           )}
         </GoogleMap>
