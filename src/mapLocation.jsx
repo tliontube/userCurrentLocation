@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 const GoogleMapComponent = () => {
   const [map, setMap] = useState(null);
@@ -7,6 +7,7 @@ const GoogleMapComponent = () => {
   const [userMarker, setUserMarker] = useState(null);
   const [path, setPath] = useState([]);
   const [polyline, setPolyline] = useState(null);
+  const [currentLocation, setCurrentLocation] = useState({});
 
   useEffect(() => {
     const initMap = () => {
@@ -19,17 +20,9 @@ const GoogleMapComponent = () => {
       const renderer = new window.google.maps.DirectionsRenderer();
       renderer.setMap(mapInstance);
       setDirectionsRenderer(renderer);
-
-      const originAutocomplete = new window.google.maps.places.Autocomplete(
-        document.getElementById("origin")
-      );
-      const destinationAutocomplete = new window.google.maps.places.Autocomplete(
-        document.getElementById("destination")
-      );
     };
 
     if (!window.google) {
-      // Google Maps API script is not loaded yet
       const script = document.createElement("script");
       script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8&callback=initMap`;
       script.async = true;
@@ -37,63 +30,62 @@ const GoogleMapComponent = () => {
       document.head.appendChild(script);
       script.onload = initMap;
     } else {
-      // Google Maps API is already loaded
       initMap();
     }
   }, []);
 
   useEffect(() => {
-    // Cleanup function to remove the previous userMarker
     return () => {
       if (userMarker) {
-        userMarker.setMap(null); // Remove marker from the map
+        userMarker.setMap(null);
       }
     };
-  }, [userMarker]); // Run this effect whenever userMarker changes
-  
-  const getUserLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
-        (position) => {
-          const userLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-  
-          // Remove the previous userMarker, if exists
-          if (userMarker) {
-            userMarker.setMap(null); // Remove marker from the map
-          }
-  
-          // Add new userMarker at the current location
-          const newMarker = new window.google.maps.Marker({
-            position: userLocation,
-            map: map,
-            icon: {
-              url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
-            },
-          });
-  
-          setUserMarker(newMarker);
-  
-          map.setCenter(userLocation);
-          map.setZoom(15);
-          setPath((prevPath) => [...prevPath, userLocation]);
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-        }
-      );
-    } else {
-      console.error("Geolocation is not supported.");
-    }
-  };
+  }, [userMarker]);
 
-  
   useEffect(() => {
-    if (path.length > 1) {
+    const getUserLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+          (position) => {
+            const userLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+            setCurrentLocation(userLocation);
+
+            if (userMarker) {
+              userMarker.setMap(null);
+            }
+
+            const newMarker = new window.google.maps.Marker({
+              position: userLocation,
+              map: map,
+              icon: {
+                url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
+              },
+            });
+
+            setUserMarker(newMarker);
+
+            map.setCenter(userLocation);
+            map.setZoom(15);
+            setPath((prevPath) => [...prevPath, userLocation]);
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+          }
+        );
+      } else {
+        console.error("Geolocation is not supported.");
+      }
+    };
+    getUserLocation();
+  }, [map, userMarker]);
+
+  useEffect(() => {
+    if (path.length > 1 && map) {
       if (polyline) {
-        polyline.setMap(null); // Remove existing polyline
+        polyline.setMap(null);
       }
       const newPath = new window.google.maps.Polyline({
         path: path,
@@ -107,10 +99,8 @@ const GoogleMapComponent = () => {
     }
   }, [path, map, polyline]);
 
-  
-
   const calculateAndDisplayRoute = () => {
-    const origin = document.getElementById("origin").value;
+    const origin = currentLocation;
     const destination = document.getElementById("destination").value;
 
     directionsService.route(
@@ -157,8 +147,6 @@ const GoogleMapComponent = () => {
   return (
     <div>
       <h1>Google Maps Directions, Distance, Time, and User Location</h1>
-      <button onClick={getUserLocation}>Get My Location</button>
-      <input type="text" id="origin" placeholder="Origin" />
       <input type="text" id="destination" placeholder="Destination" />
       <button onClick={calculateAndDisplayRoute}>Get Directions</button>
       <div id="map" style={{ height: "400px", width: "100%" }}></div>
