@@ -25,9 +25,6 @@ const GoogleMapComponent = () => {
       const destinationAutocomplete = new window.google.maps.places.Autocomplete(
         document.getElementById("destination")
       );
-
-      // Get and display user's current location on map
-      getUserLocation();
     };
 
     if (!window.google) {
@@ -65,8 +62,6 @@ const GoogleMapComponent = () => {
           }
           map.setCenter(userLocation);
           map.setZoom(15);
-          // After getting user location, calculate and display route
-          calculateAndDisplayRoute(userLocation);
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -77,7 +72,8 @@ const GoogleMapComponent = () => {
     }
   };
 
-  const calculateAndDisplayRoute = (origin) => {
+  const calculateAndDisplayRoute = () => {
+    const origin = document.getElementById("origin").value;
     const destination = document.getElementById("destination").value;
 
     directionsService.route(
@@ -153,8 +149,9 @@ const GoogleMapComponent = () => {
     <div>
       <h1>Google Maps Directions, Distance, Time, and Car Tracking with User Location</h1>
       <button onClick={getUserLocation}>Get My Location</button>
+      <input type="text" id="origin" placeholder="Origin" />
       <input type="text" id="destination" placeholder="Destination" />
-      <button onClick={() => calculateAndDisplayRoute(userMarker ? userMarker.getPosition() : null)}>Get Directions</button>
+      <button onClick={calculateAndDisplayRoute}>Get Directions</button>
       <div id="map" style={{ height: "400px", width: "100%" }}></div>
       <div id="distance"></div>
       <div id="duration"></div>
