@@ -28,7 +28,7 @@ const MapContainer = () => {
     } else {
       alert('Geolocation is not supported by this browser.');
     }
-  }, [origin, distance]);
+  }, [origin]);
 
   const onMapClick = (event) => {
     const newUserLocation = {
@@ -58,7 +58,7 @@ const MapContainer = () => {
   };
 
   return (
-    <div style={{ height: '500px', width: '600px' }}>
+    <div style={{ height: '500px', width: '380px' }}>
       <LoadScript
         googleMapsApiKey="AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8"
       >
