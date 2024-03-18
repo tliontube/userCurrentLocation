@@ -10,7 +10,7 @@ const MapContainer = () => {
 
   useEffect(() => {
     if (navigator.geolocation) {
-      navigator.geolocation.watchPosition((position) => {
+      const watchId = navigator.geolocation.watchPosition((position) => {
         const userLocation = {
           lat: position.coords.latitude,
           lng: position.coords.longitude
@@ -25,13 +25,17 @@ const MapContainer = () => {
           const distanceMoved = calculateDistance(previousPosition, userLocation);
           setDistance(distance + distanceMoved);
           setPreviousPosition(userLocation);
-          setPath([...path, userLocation]);
+          setPath(prevPath => [...prevPath, userLocation]);
         }
       });
+
+      return () => {
+        navigator.geolocation.clearWatch(watchId);
+      };
     } else {
       alert('Geolocation is not supported by this browser.');
     }
-  }, [origin]);
+  }, [origin, distance]);
 
   const onMapClick = (event) => {
     const newUserLocation = {
@@ -63,7 +67,7 @@ const MapContainer = () => {
   return (
     <div style={{ height: '500px', width: '380px' }}>
       <LoadScript
-        googleMapsApiKey="AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8"
+        googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY"
       >
         <GoogleMap
           mapContainerStyle={{
