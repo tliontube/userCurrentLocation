@@ -61,14 +61,13 @@ const GoogleMapComponent = () => {
               position: userLocation,
               map: map,
               icon: {
-                url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
               },
             });
 
             setUserMarker(newMarker);
 
             map.setCenter(userLocation);
-            // map.setZoom(15);
             setPath((prevPath) => [...prevPath, userLocation]);
           },
           (error) => {
