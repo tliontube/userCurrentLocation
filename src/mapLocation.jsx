@@ -8,7 +8,7 @@ const MapContainer = () => {
 
   useEffect(() => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
+      navigator.geolocation.watchPosition((position) => {
         const userLocation = {
           lat: position.coords.latitude,
           lng: position.coords.longitude
