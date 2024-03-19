@@ -19,32 +19,31 @@ const MapContainer = () => {
       const watchId = navigator.geolocation.watchPosition((position) => {
         const userLocation = {
           lat: position.coords.latitude,
-          lng: position.coords.longitude,
+          lng: position.coords.longitude
         };
-
+  
         if (!origin) {
           setOrigin(userLocation);
           setPreviousPosition(userLocation);
           setMap(userLocation);
           setPath([userLocation]);
         } else {
-          const distanceMoved = calculateDistance(
-            previousPosition,
-            userLocation
-          );
+          const distanceMoved = calculateDistance(previousPosition, userLocation);
           setDistance(distance + distanceMoved);
           setPreviousPosition(userLocation);
-          setPath((prevPath) => [...prevPath, userLocation]);
+          setPath(prevPath => [...prevPath, userLocation]);
+          setMap(userLocation); // Update the map to move the marker
         }
       });
-
+  
       return () => {
         navigator.geolocation.clearWatch(watchId);
       };
     } else {
-      alert("Geolocation is not supported by this browser.");
+      alert('Geolocation is not supported by this browser.');
     }
-  }, [origin, distance]);
+  }, [origin, distance, previousPosition]);
+  
 
   const onMapClick = (event) => {
     const newUserLocation = {
