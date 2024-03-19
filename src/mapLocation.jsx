@@ -11,6 +11,7 @@ const MapContainer = () => {
   const [accuracy, setAccuracy] = useState(null);
   const [heading, setHeading] = useState(null);
   const [requestCount, setRequestCount] = useState(0);
+  const MOVEMENT_THRESHOLD = 10;
 
   useEffect(() => {
     const firebaseConfig = {
@@ -53,21 +54,31 @@ const MapContainer = () => {
     if (navigator.geolocation && user) {
       const watchId = navigator.geolocation.watchPosition(
         position => {
-          setUserLocation({
+          const newPosition = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
+          };
+          setUserLocation(prevLocation => {
+            // Calculate distance between previous and new position
+            const distance = calculateDistance(prevLocation, newPosition);
+            // Update location only if distance exceeds threshold
+            if (distance >= MOVEMENT_THRESHOLD) {
+              setSpeed(position.coords.speed);
+              setAccuracy(position.coords.accuracy);
+              setHeading(position.coords.heading);
+              setRequestCount(prevCount => prevCount + 1);
+              fetchPlaceData(position.coords.latitude, position.coords.longitude);
+              return newPosition;
+            } else {
+              return prevLocation;
+            }
           });
-          setSpeed(position.coords.speed);
-          setAccuracy(position.coords.accuracy);
-          setHeading(position.coords.heading);
-          setRequestCount(prevCount => prevCount + 1);
-          fetchPlaceData(position.coords.latitude, position.coords.longitude);
         },
         error => {
           console.error("Error getting user location:", error);
         }
       );
-
+  
       return () => {
         navigator.geolocation.clearWatch(watchId);
       };
@@ -75,6 +86,28 @@ const MapContainer = () => {
       alert("Geolocation is not supported by this browser.");
     }
   }, [user]);
+
+  const calculateDistance = (pos1, pos2) => {
+    if (!pos1 || !pos2) return 0;
+  
+    const rad = (x) => {
+      return (x * Math.PI) / 180;
+    };
+  
+    const R = 6378137; // Earth’s mean radius in meters
+    const dLat = rad(pos2.lat - pos1.lat);
+    const dLong = rad(pos2.lng - pos1.lng);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(rad(pos1.lat)) *
+        Math.cos(rad(pos2.lat)) *
+        Math.sin(dLong / 2) *
+        Math.sin(dLong / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+  
+    return distance; // returns the distance in meters
+  };
 
   const fetchPlaceData = async (latitude, longitude) => {
     try {
