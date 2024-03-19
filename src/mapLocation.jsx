@@ -7,6 +7,8 @@ const MapContainer = () => {
   const [distance, setDistance] = useState(0);
   const [previousPosition, setPreviousPosition] = useState(null);
   const [path, setPath] = useState([]);
+  const [visitedPlaces, setVisitedPlaces] = useState([]);
+  const [placeName, setPlaceName] = useState("");
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -21,11 +23,17 @@ const MapContainer = () => {
           setPreviousPosition(userLocation);
           setMap(userLocation);
           setPath([userLocation]);
+          fetchPlaceName(userLocation);
+          setVisitedPlaces([userLocation]);
         } else {
           const distanceMoved = calculateDistance(previousPosition, userLocation);
           setDistance(distance + distanceMoved);
           setPreviousPosition(userLocation);
           setPath(prevPath => [...prevPath, userLocation]);
+          // Check if the user has moved significantly to add the place to the list
+          if (distanceMoved > 50) {
+            setVisitedPlaces(prevPlaces => [...prevPlaces, userLocation]);
+          }
         }
       });
 
@@ -45,7 +53,18 @@ const MapContainer = () => {
     setMap(newUserLocation);
   };
 
-  
+  const fetchPlaceName = async (location) => {
+    try {
+      const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.lat},${location.lng}&key=AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8`);
+      const data = await response.json();
+      if (data.results && data.results.length > 0) {
+        setPlaceName(data.results[0].formatted_address);
+      }
+    } catch (error) {
+      console.error('Error fetching place name:', error);
+    }
+  };
+
   const calculateDistance = (pos1, pos2) => {
     if (!pos1 || !pos2) return 0;
 
@@ -64,6 +83,16 @@ const MapContainer = () => {
 
     return distance; // returns the distance in meters
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (map) {
+        fetchPlaceName(map);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [map]);
 
   return (
     <div style={{ height: '500px', width: '380px' }}>
@@ -95,9 +124,15 @@ const MapContainer = () => {
         </GoogleMap>
       </LoadScript>
       <p>Distance traveled: {distance.toFixed(2)} meters</p>
+      <p>Current Place: {placeName}</p>
+      <p>Visited Places:</p>
+      <ul>
+        {visitedPlaces.map((place, index) => (
+          <li key={index}>{place.lat}, {place.lng}</li>
+        ))}
+      </ul>
     </div>
   );
 };
 
 export default MapContainer;
- 
