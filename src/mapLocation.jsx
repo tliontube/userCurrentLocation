@@ -57,14 +57,17 @@ const MapContainer = () => {
 
   const updateTravelHistory = (newLocation) => {
     if (origin && map) {
-      const lastLocation =
-        travelHistory.length > 0
-          ? travelHistory[travelHistory.length - 1].end
-          : "Origin";
-      const segment = { start: lastLocation, end: "New Location" }; // You can improve this logic to get actual location names
-      setTravelHistory((prevHistory) => [...prevHistory, segment]);
+      setTravelHistory(prevHistory => {
+        const lastLocation =
+          prevHistory.length > 0
+            ? prevHistory[prevHistory.length - 1].end
+            : "Origin";
+        const segment = { start: lastLocation, end: "New Location" }; // You can improve this logic to get actual location names
+        return [...prevHistory, segment];
+      });
     }
   };
+  
 
   const calculateDistance = (pos1, pos2) => {
     if (!pos1 || !pos2) return 0;
