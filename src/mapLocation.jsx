@@ -1,5 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { GoogleMap, LoadScript, Marker, Polyline } from '@react-google-maps/api';
+import React, { useState, useEffect } from "react";
+import {
+  GoogleMap,
+  LoadScript,
+  Marker,
+  Polyline,
+} from "@react-google-maps/api";
 
 const MapContainer = () => {
   const [map, setMap] = useState(null);
@@ -7,13 +12,14 @@ const MapContainer = () => {
   const [distance, setDistance] = useState(0);
   const [previousPosition, setPreviousPosition] = useState(null);
   const [path, setPath] = useState([]);
+  const [travelHistory, setTravelHistory] = useState([]);
 
   useEffect(() => {
     if (navigator.geolocation) {
       const watchId = navigator.geolocation.watchPosition((position) => {
         const userLocation = {
           lat: position.coords.latitude,
-          lng: position.coords.longitude
+          lng: position.coords.longitude,
         };
 
         if (!origin) {
@@ -22,10 +28,13 @@ const MapContainer = () => {
           setMap(userLocation);
           setPath([userLocation]);
         } else {
-          const distanceMoved = calculateDistance(previousPosition, userLocation);
+          const distanceMoved = calculateDistance(
+            previousPosition,
+            userLocation
+          );
           setDistance(distance + distanceMoved);
           setPreviousPosition(userLocation);
-          setPath(prevPath => [...prevPath, userLocation]);
+          setPath((prevPath) => [...prevPath, userLocation]);
         }
       });
 
@@ -33,16 +42,28 @@ const MapContainer = () => {
         navigator.geolocation.clearWatch(watchId);
       };
     } else {
-      alert('Geolocation is not supported by this browser.');
+      alert("Geolocation is not supported by this browser.");
     }
   }, [origin, distance]);
 
   const onMapClick = (event) => {
     const newUserLocation = {
       lat: event.latLng.lat(),
-      lng: event.latLng.lng()
+      lng: event.latLng.lng(),
     };
     setMap(newUserLocation);
+    updateTravelHistory(newUserLocation);
+  };
+
+  const updateTravelHistory = (newLocation) => {
+    if (origin && map) {
+      const lastLocation =
+        travelHistory.length > 0
+          ? travelHistory[travelHistory.length - 1].end
+          : "Origin";
+      const segment = { start: lastLocation, end: "New Location" }; // You can improve this logic to get actual location names
+      setTravelHistory((prevHistory) => [...prevHistory, segment]);
+    }
   };
 
   const calculateDistance = (pos1, pos2) => {
@@ -57,7 +78,10 @@ const MapContainer = () => {
     const dLong = rad(pos2.lng - pos1.lng);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(rad(pos1.lat)) * Math.cos(rad(pos2.lat)) * Math.sin(dLong / 2) * Math.sin(dLong / 2);
+      Math.cos(rad(pos1.lat)) *
+        Math.cos(rad(pos2.lat)) *
+        Math.sin(dLong / 2) *
+        Math.sin(dLong / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c;
 
@@ -65,14 +89,12 @@ const MapContainer = () => {
   };
 
   return (
-    <div style={{ height: '500px', width: '380px' }}>
-      <LoadScript
-        googleMapsApiKey="AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8"
-      >
+    <div style={{ height: "500px", width: "380px" }}>
+      <LoadScript googleMapsApiKey="AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8">
         <GoogleMap
           mapContainerStyle={{
-            height: '100%',
-            width: '100%'
+            height: "100%",
+            width: "100%",
           }}
           zoom={13}
           center={origin}
@@ -84,9 +106,9 @@ const MapContainer = () => {
               <Polyline
                 path={path}
                 options={{
-                  strokeColor: '#FF0000',
+                  strokeColor: "#FF0000",
                   strokeOpacity: 1.0,
-                  strokeWeight: 2
+                  strokeWeight: 2,
                 }}
               />
             </>
@@ -94,6 +116,11 @@ const MapContainer = () => {
         </GoogleMap>
       </LoadScript>
       <p>Distance traveled: {distance.toFixed(2)} meters</p>
+      <ul>
+        {travelHistory.map((segment, index) => (
+          <li key={index}>{`${segment.start} to ${segment.end}`}</li>
+        ))}
+      </ul>
     </div>
   );
 };
