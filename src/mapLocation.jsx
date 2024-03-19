@@ -11,7 +11,7 @@ const MapContainer = () => {
   const [accuracy, setAccuracy] = useState(null);
   const [heading, setHeading] = useState(null);
   const [requestCount, setRequestCount] = useState(0);
-  const MOVEMENT_THRESHOLD = 10;
+  const MOVEMENT_THRESHOLD = 3;
 
   useEffect(() => {
     const firebaseConfig = {
