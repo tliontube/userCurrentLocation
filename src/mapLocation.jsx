@@ -10,6 +10,7 @@ const MapContainer = () => {
   const [visitedPlaces, setVisitedPlaces] = useState([]);
   const [placeName, setPlaceName] = useState("");
   const [lastVisitedPlace, setLastVisitedPlace] = useState(null);
+  const MOVE_THRESHOLD = 50; // Adjust the threshold as needed
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -31,7 +32,7 @@ const MapContainer = () => {
           setPreviousPosition(userLocation);
           setPath(prevPath => [...prevPath, userLocation]);
           // Check if the user has moved significantly to add the place to the list
-          if (distanceMoved > 50) {
+          if (distanceMoved > MOVE_THRESHOLD) {
             fetchPlaceData(userLocation);
           }
         }
