@@ -9,6 +9,7 @@ const MapContainer = () => {
   const [path, setPath] = useState([]);
   const [visitedPlaces, setVisitedPlaces] = useState([]);
   const [placeName, setPlaceName] = useState("");
+  const [lastVisitedPlace, setLastVisitedPlace] = useState(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -24,7 +25,6 @@ const MapContainer = () => {
           setMap(userLocation);
           setPath([userLocation]);
           fetchPlaceData(userLocation);
-          setVisitedPlaces([{ ...userLocation, name: placeName }]);
         } else {
           const distanceMoved = calculateDistance(previousPosition, userLocation);
           setDistance(distance + distanceMoved);
@@ -58,8 +58,12 @@ const MapContainer = () => {
       const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.lat},${location.lng}&key=AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8`);
       const data = await response.json();
       if (data.results && data.results.length > 0) {
-        setPlaceName(data.results[0].formatted_address);
-        setVisitedPlaces(prevPlaces => [...prevPlaces, { ...location, name: data.results[0].formatted_address }]);
+        const newPlaceName = data.results[0].formatted_address;
+        setPlaceName(newPlaceName);
+        if (!lastVisitedPlace || lastVisitedPlace !== newPlaceName) {
+          setVisitedPlaces(prevPlaces => [...prevPlaces, newPlaceName]);
+          setLastVisitedPlace(newPlaceName);
+        }
       }
     } catch (error) {
       console.error('Error fetching place data:', error);
@@ -129,7 +133,7 @@ const MapContainer = () => {
       <p>Visited Places:</p>
       <ul>
         {visitedPlaces.map((place, index) => (
-          <li key={index}>{place.name}</li>
+          <li key={index}>{place}</li>
         ))}
       </ul>
     </div>
