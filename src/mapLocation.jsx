@@ -23,8 +23,8 @@ const MapContainer = () => {
           setPreviousPosition(userLocation);
           setMap(userLocation);
           setPath([userLocation]);
-          fetchPlaceName(userLocation);
-          setVisitedPlaces([userLocation]);
+          fetchPlaceData(userLocation);
+          setVisitedPlaces([{ ...userLocation, name: placeName }]);
         } else {
           const distanceMoved = calculateDistance(previousPosition, userLocation);
           setDistance(distance + distanceMoved);
@@ -32,7 +32,7 @@ const MapContainer = () => {
           setPath(prevPath => [...prevPath, userLocation]);
           // Check if the user has moved significantly to add the place to the list
           if (distanceMoved > 50) {
-            setVisitedPlaces(prevPlaces => [...prevPlaces, userLocation]);
+            fetchPlaceData(userLocation);
           }
         }
       });
@@ -53,15 +53,16 @@ const MapContainer = () => {
     setMap(newUserLocation);
   };
 
-  const fetchPlaceName = async (location) => {
+  const fetchPlaceData = async (location) => {
     try {
       const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.lat},${location.lng}&key=AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8`);
       const data = await response.json();
       if (data.results && data.results.length > 0) {
         setPlaceName(data.results[0].formatted_address);
+        setVisitedPlaces(prevPlaces => [...prevPlaces, { ...location, name: data.results[0].formatted_address }]);
       }
     } catch (error) {
-      console.error('Error fetching place name:', error);
+      console.error('Error fetching place data:', error);
     }
   };
 
@@ -87,7 +88,7 @@ const MapContainer = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       if (map) {
-        fetchPlaceName(map);
+        fetchPlaceData(map);
       }
     }, 5000);
 
@@ -128,7 +129,7 @@ const MapContainer = () => {
       <p>Visited Places:</p>
       <ul>
         {visitedPlaces.map((place, index) => (
-          <li key={index}>{place.lat}, {place.lng}</li>
+          <li key={index}>{place.name}</li>
         ))}
       </ul>
     </div>
