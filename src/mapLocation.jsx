@@ -7,7 +7,7 @@ import {
 } from "@react-google-maps/api";
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { getDatabase, ref, push } from "firebase/database";
+import { getDatabase, ref, push, child } from "firebase/database";
 
 const MapContainer = () => {
   const [map, setMap] = useState(null);
@@ -18,6 +18,7 @@ const MapContainer = () => {
   const [visitedPlaces, setVisitedPlaces] = useState([]);
   const [placeName, setPlaceName] = useState("");
   const [lastVisitedPlace, setLastVisitedPlace] = useState(null);
+  const [user, setUser] = useState(null); // Track user's sign-in status
   const MOVE_THRESHOLD = 50; // Adjust the threshold as needed
 
   // Initialize Firebase
@@ -44,6 +45,7 @@ const MapContainer = () => {
       .then((result) => {
         const user = result.user;
         console.log("User signed in:", user);
+        setUser(user); // Set the user state upon successful sign-in
       })
       .catch((error) => {
         console.error("Google sign-in error:", error);
@@ -52,7 +54,7 @@ const MapContainer = () => {
 
   // Watch user's geolocation
   useEffect(() => {
-    if (navigator.geolocation) {
+    if (navigator.geolocation && user) {
       const watchId = navigator.geolocation.watchPosition((position) => {
         const userLocation = {
           lat: position.coords.latitude,
@@ -86,7 +88,7 @@ const MapContainer = () => {
     } else {
       alert("Geolocation is not supported by this browser.");
     }
-  }, [origin, distance]);
+  }, [origin, distance, user]);
 
   // Handle map click event
   const onMapClick = (event) => {
@@ -144,10 +146,11 @@ const MapContainer = () => {
   useEffect(() => {
     const db = getDatabase();
     const locationRef = ref(db, "locations");
-    if (map) {
-      push(locationRef, map);
+    if (map && user) {
+      const userLocationRef = child(locationRef, user.uid);
+      push(userLocationRef, map);
     }
-  }, [map]);
+  }, [map, user]);
 
   // Set up interval to check user's location periodically
   useEffect(() => {
@@ -165,40 +168,47 @@ const MapContainer = () => {
 
   return (
     <div style={{ height: "500px", width: "380px" }}>
-      <LoadScript googleMapsApiKey="AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8">
-        <GoogleMap
-          mapContainerStyle={{
-            height: "100%",
-            width: "100%",
-          }}
-          zoom={13}
-          center={origin}
-          onClick={onMapClick}
-        >
-          {map && (
-            <>
-              <Marker position={map} />
-              <Polyline
-                path={path}
-                options={{
-                  strokeColor: "#FF0000",
-                  strokeOpacity: 1.0,
-                  strokeWeight: 2,
-                }}
-              />
-            </>
-          )}
-        </GoogleMap>
-      </LoadScript>
-      <button onClick={handleSignInWithGoogle}>Sign in with Google</button>
-      <p>Distance traveled: {distance.toFixed(2)} meters</p>
-      <p>Current Place: {placeName}</p>
-      <p>Visited Places:</p>
-      <ul>
-        {visitedPlaces.map((place, index) => (
-          <li key={index}>{place}</li>
-        ))}
-      </ul>
+      {user ? ( // Conditionally render based on user sign-in status
+        <LoadScript googleMapsApiKey="AIzaSyDMvHTvx8oVrT5NDIXLck6aqLacu3tIHU8">
+          <GoogleMap
+            mapContainerStyle={{
+              height: "100%",
+              width: "100%",
+            }}
+            zoom={13}
+            center={origin}
+            onClick={onMapClick}
+          >
+            {map && (
+              <>
+                <Marker position={map} />
+                <Polyline
+                  path={path}
+                  options={{
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2,
+                  }}
+                />
+              </>
+            )}
+          </GoogleMap>
+        </LoadScript>
+      ) : (
+        <button onClick={handleSignInWithGoogle}>Sign in with Google</button>
+      )}
+      {user && ( // Conditionally render distance, place name, and visited places if user is signed in
+        <>
+          <p>Distance traveled: {distance.toFixed(2)} meters</p>
+          <p>Current Place: {placeName}</p>
+          <p>Visited Places:</p>
+          <ul>
+            {visitedPlaces.map((place, index) => (
+              <li key={index}>{place}</li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 };
