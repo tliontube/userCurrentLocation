@@ -93,7 +93,10 @@ const MapContainer = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       if (map) {
-        fetchPlaceData(map);
+        const distanceMoved = calculateDistance(previousPosition, map);
+        if (distanceMoved > MOVE_THRESHOLD) {
+          fetchPlaceData(map);
+        }
       }
     }, 5000);
 
