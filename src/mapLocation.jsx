@@ -61,13 +61,13 @@ const MapContainer = () => {
           setUserLocation(prevLocation => {
             // Calculate distance between previous and new position
             const distance = calculateDistance(prevLocation, newPosition);
+            fetchPlaceData(position.coords.latitude, position.coords.longitude);
             // Update location only if distance exceeds threshold
             if (distance >= MOVEMENT_THRESHOLD) {
               setSpeed(position.coords.speed);
               setAccuracy(position.coords.accuracy);
               setHeading(position.coords.heading);
               setRequestCount(prevCount => prevCount + 1);
-              fetchPlaceData(position.coords.latitude, position.coords.longitude);
               return newPosition;
             } else {
               return prevLocation;
